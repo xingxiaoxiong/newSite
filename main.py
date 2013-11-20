@@ -59,7 +59,6 @@ class MainPage(BaseHandler):
       self.write('Hello, Udacity!')
 
 
-'''
 
 ##### user stuff
 def users_key(group = 'default'):
@@ -105,22 +104,15 @@ class Signup(BaseHandler):
     def post(self):
         have_error = False
         self.username = self.request.get('username')
-        self.password = self.request.get('password')
-        self.verify = self.request.get('verify')
-        self.email = self.request.get('email')
+        self.email = self.username + self.request.get('domain')
+        
+        self.password = pw_generator()
 
         params = dict(username = self.username,
-                      email = self.email)
+                      domain = self.domain)
 
         if not valid_username(self.username):
             params['error_username'] = "That's not a valid username."
-            have_error = True
-
-        if not valid_password(self.password):
-            params['error_password'] = "That wasn't a valid password."
-            have_error = True
-        elif self.password != self.verify:
-            params['error_verify'] = "Your passwords didn't match."
             have_error = True
 
         if not valid_email(self.email):
@@ -135,11 +127,10 @@ class Signup(BaseHandler):
     def done(self, *a, **kw):
         raise NotImplementedError
 
-
 class Register(Signup):
     def done(self):
         #make sure the user doesn't already exist
-        u = User.by_name(self.username)
+        u = User.by_email(self.email)
         if u:
             msg = 'That user already exists.'
             params = dict( error_username = msg )
@@ -149,7 +140,7 @@ class Register(Signup):
             u.put()
 
             self.login(u)
-            self.redirect('/blog')
+            self.redirect('/')
 
 class Login(BaseHandler):
     def get(self):
@@ -172,7 +163,7 @@ class Logout(BaseHandler):
     def get(self):
         self.logout()
         self.redirect('/')
-'''
+
 
 app = webapp2.WSGIApplication([('/', MainPage),
                                ('/signup', Register),
