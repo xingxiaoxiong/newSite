@@ -22,10 +22,10 @@ def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
 def make_salt(length = 5):
     return ''.join(random.choice(letters) for x in xrange(length))
 
-def make_pw_hash(email, pw, salt = None):
+def make_pw_hash(name, pw, salt = None):
     if not salt:
         salt = make_salt()
-    h = hashlib.sha256(email + pw + salt).hexdigest()
+    h = hashlib.sha256(name + pw + salt).hexdigest()
     return '%s,%s' % (salt, h)
 
 def valid_pw(name, password, h):
