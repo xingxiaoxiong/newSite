@@ -28,13 +28,9 @@ def make_pw_hash(email, pw, salt = None):
     h = hashlib.sha256(email + pw + salt).hexdigest()
     return '%s,%s' % (salt, h)
 
-def valid_pw(name, password, h):
+def valid_pw(email, password, h):
     salt = h.split(',')[0]
-    return h == make_pw_hash(name, password, salt)
-
-def render_str(template, **params):
-    t = jinja_env.get_template(template)
-    return t.render(params)
+    return h == make_pw_hash(email, password, salt)
 
 def make_secure_val(val):
     return '%s|%s' % (val, hmac.new(secret, val).hexdigest())
