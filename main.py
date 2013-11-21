@@ -10,13 +10,16 @@ from utils import *
 import webapp2
 import jinja2
 
+import logging
+
 from google.appengine.ext import db
+from google.appengine.api import mail
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
                                autoescape = True)
 
-secret = 'txdd2034'
+
 
 def render_str(template, **params):
     t = jinja_env.get_template(template)
@@ -33,18 +36,23 @@ class BaseHandler(webapp2.RequestHandler):
     def render(self, template, **kw):
         self.write(self.render_str(template, **kw))
 
-    def set_secure_cookie(self, name, val):
+    def set_secure_cookie(self, name, val, remember):
         cookie_val = make_secure_val(val)
-        self.response.headers.add_header(
+        if(remember):
+            self.response.headers.add_header(
             'Set-Cookie',
             '%s=%s; Path=/' % (name, cookie_val))
+        else:
+            self.response.headers.add_header(
+            'Set-Cookie',
+            '%s=%s; expires=datetime.datetime.now() + datetime.timedelta(weeks=4); Path=/' % (name, cookie_val))
 
     def read_secure_cookie(self, name):
         cookie_val = self.request.cookies.get(name)
         return cookie_val and check_secure_val(cookie_val)
 
-    def login(self, user):
-        self.set_secure_cookie('user_id', str(user.key().id()))
+    def login(self, user, remember = False):
+        self.set_secure_cookie('user_id', str(user.key().id()), remember)
 
     def logout(self):
         self.response.headers.add_header('Set-Cookie', 'user_id=; Path=/')
@@ -104,9 +112,12 @@ class Signup(BaseHandler):
     def post(self):
         have_error = False
         self.username = self.request.get('username')
-        self.email = self.username + self.request.get('domain')
+        self.domain = self.request.get('domain')
+        self.email = self.username + self.domain
         
         self.password = pw_generator()
+
+        logging.error(self.password)
 
         params = dict(username = self.username,
                       domain = self.domain)
@@ -139,7 +150,14 @@ class Register(Signup):
             u = User.register(self.username, self.password, self.email)
             u.put()
 
-            self.login(u)
+            registration_msg = 'Your password is %s' % self.password
+            message = mail.EmailMessage(sender='Exchange-JP Team <xingxiaoxiong@gmail.com>',
+                                        to=self.email,
+                                        subject='Welcome to Exchange-JP',
+                                        body=registration_msg)
+            message.send()
+
+            #self.login(u)
             self.redirect('/')
 
 class Login(BaseHandler):

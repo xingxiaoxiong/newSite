@@ -4,6 +4,8 @@ import hashlib
 import hmac
 from string import letters
 
+secret = 'txdd2034'
+
 USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
 def valid_username(username):
     return username and USER_RE.match(username)
