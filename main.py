@@ -165,13 +165,18 @@ class Login(BaseHandler):
         self.render('login-form.html')
 
     def post(self):
-        username = self.request.get('username')
+        email_username = self.request.get('email_username')
+        domain = self.request.get('domain')
         password = self.request.get('password')
+        remember = self.request.get('remember')
 
-        u = User.login(username, password)
+        u = User.login(email_username+domain, password)
         if u:
-            self.login(u)
-            self.redirect('/blog')
+            if (remember):
+                self.login(u, True)
+            else:
+                self.login(u)
+            self.redirect('/')
         else:
             msg = 'Invalid login'
             params = dict( error = msg )
