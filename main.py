@@ -13,7 +13,10 @@ import jinja2
 import logging
 
 from google.appengine.ext import db
+from google.appengine.ext import blobstore
+from google.appengine.ext.webapp import blobstore_handlers
 from google.appengine.api import mail
+from google.appengine.api import images
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
@@ -64,7 +67,9 @@ class BaseHandler(webapp2.RequestHandler):
 
 class MainPage(BaseHandler):
   def get(self):
-      self.write('Hello, Udacity!')
+      params=dict(user=self.user)
+      logging.error(self.user)
+      self.render('main.html', **params)
 
 
 
@@ -76,6 +81,8 @@ class User(db.Model):
     email = db.StringProperty(required = True)
     name = db.StringProperty(required = True)
     pw_hash = db.StringProperty(required = True)
+
+    item_want = db.ListProperty(db.Key)
 
     @classmethod
     def by_id(cls, uid):
@@ -104,6 +111,21 @@ class User(db.Model):
         u = cls.by_email(email)
         if u and valid_pw(email, pw, u.pw_hash):
             return u
+
+class Item(db.Model):
+    category = db.StringProperty()
+    expire_date = db.DateProperty()
+    added_date = db.DateTimeProperty(auto_now_add=True)
+    item_ownner = db.ReferenceProperty(User, collection_name='item_owns')
+    description = db.StringProperty()
+    blob = blobstore.BlobReferenceProperty()
+    thumbnail = db.StringProperty()
+
+class Comment(db.Model):
+    writer = db.ReferenceProperty(User, collection_name='comments')
+    item = db.ReferenceProperty(Item, collection_name='comments')
+    content = db.TextProperty()
+    added_date = db.DateTimeProperty(auto_now_add=True)
 
 class Signup(BaseHandler):
     def get(self):
@@ -158,7 +180,7 @@ class Register(Signup):
             message.send()
 
             #self.login(u)
-            self.redirect('/')
+            self.redirect('/login')
 
 class Login(BaseHandler):
     def get(self):
@@ -171,6 +193,9 @@ class Login(BaseHandler):
         remember = self.request.get('remember')
 
         u = User.login(email_username+domain, password)
+
+        logging.error( email_username+domain )
+        logging.error( password )
         if u:
             if (remember):
                 self.login(u, True)

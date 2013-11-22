@@ -31,7 +31,7 @@
     <div class="container">
 
       <form class="form-signin" method="post">
-        <h2 class="form-signin-heading">Please sign in</h2>
+        <h2 class="form-signin-heading">Please Login</h2>
         <input type="text" class="form-control" name="email_username"
         placeholder="Email address" required autofocus>
       
@@ -45,7 +45,11 @@
         <label class="checkbox">
           <input type="checkbox" name="remember" value="remember-me"> Remember me
         </label>
-        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+        <button class="btn btn-lg btn-primary btn-block"
+        type="submit">Sign in</button>
+	{% if error %}
+ 	<div class="alert alert-danger">{{ error }}</div>
+	{% endif %}
       </form>
 
     </div> <!-- /container -->
