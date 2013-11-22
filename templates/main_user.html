@@ -1,21 +1,23 @@
-<form role="form">
-  <div class="form-group">
-    <label for="exampleInputEmail1">Email address</label>
-    <input type="email" class="form-control" id="exampleInputEmail1" placeholder="Enter email">
-  </div>
-  <div class="form-group">
-    <label for="exampleInputPassword1">Password</label>
-    <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
-  </div>
-  <div class="form-group">
-    <label for="exampleInputFile">File input</label>
-    <input type="file" id="exampleInputFile">
-    <p class="help-block">Example block-level help text here.</p>
-  </div>
-  <div class="checkbox">
-    <label>
-      <input type="checkbox"> Check me out
-    </label>
-  </div>
-  <button type="submit" class="btn btn-default">Submit</button>
-</form>
+<form action="{{upload_url}}" method="post"
+enctype="multipart/form-data" class="col-md-4 col-md-offset-4">
+<fieldset>
+	  <legend>新物品发布</legend>
+	  <div class="form-group">
+	    <label for="category">类别</label>
+	    <select name="category" class="form-control">
+	      <option>家电</option>
+	      <option>家具</option>
+	      <option>其他</option>
+	    </select>
+	  </div>
+	  <div class="form-group">
+    	    <label for="description">物品描述</label>
+	    <textarea name="description" class="form-control" rows="4"></textarea>
+	  </div>
+	  <div class="form-group">
+	    <label for="upload">上传图像</label>
+	    <input type="file" name="upload"  id="upload" multiple="true">
+	  </div>
+	  <button type="submit" class="btn btn-default">确认添加</button>
+	</fieldset>
+      </form>

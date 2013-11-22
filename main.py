@@ -67,8 +67,13 @@ class BaseHandler(webapp2.RequestHandler):
 
 class MainPage(BaseHandler):
   def get(self):
-      params=dict(user=self.user)
+      upload_url = blobstore.create_upload_url('/upload')
+      
+      params=dict(user=self.user, upload_url=upload_url)
       logging.error(self.user)
+
+      
+      
       self.render('main.html', **params)
 
 
@@ -116,7 +121,7 @@ class Item(db.Model):
     category = db.StringProperty()
     expire_date = db.DateProperty()
     added_date = db.DateTimeProperty(auto_now_add=True)
-    item_ownner = db.ReferenceProperty(User, collection_name='item_owns')
+    item_owner = db.ReferenceProperty(User, collection_name='item_owns')
     description = db.StringProperty()
     blob = blobstore.BlobReferenceProperty()
     thumbnail = db.StringProperty()
@@ -126,6 +131,27 @@ class Comment(db.Model):
     item = db.ReferenceProperty(Item, collection_name='comments')
     content = db.TextProperty()
     added_date = db.DateTimeProperty(auto_now_add=True)
+
+class UploadHandler(blobstore_handlers.BlobstoreUploadHandler):
+    def read_secure_cookie(self, name):
+        cookie_val = self.request.cookies.get(name)
+        return cookie_val and check_secure_val(cookie_val)
+    
+    def post(self):
+        uid = self.read_secure_cookie('user_id')
+        user = uid and User.by_id(int(uid))
+
+        description = self.request.params['description']
+                
+        category = self.request.params['category']
+        for blob_info in self.get_uploads('upload'):
+            item = Item(category = category,
+                        description=description,
+                        item_owner = user,
+                        blob=blob_info.key(),
+                        thumbnail = images.get_serving_url(blob_info.key(), size=128))
+            item.put()
+        self.redirect('/')
 
 class Signup(BaseHandler):
     def get(self):
@@ -217,6 +243,7 @@ app = webapp2.WSGIApplication([('/', MainPage),
                                ('/signup', Register),
                                ('/login', Login),
                                ('/logout', Logout),
+                               ('/upload', UploadHandler),
                                ],
                               debug=True)
 
